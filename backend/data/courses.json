@@ -1,0 +1,17 @@
+{
+  "ISWE411L": {
+    "name": "Deep Learning",
+    "faculty": "Sample faculty",
+    "semester": "Fall Semester 2026-27",
+    "type": "TH - Theory Only",
+    "credits": "3.0"
+  },
+  "MGT2001": {
+    "name": "Principles of Management",
+    "faculty": "Sample faculty",
+    "semester": "Fall Semester 2026-27",
+    "type": "TH - Theory Only",
+    "credits": "3.0"
+  },
+  
+}

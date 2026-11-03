@@ -1,0 +1,26 @@
+scope,topic,num_questions,run,http_status,success,completion_time_seconds,ollama_calls,error
+entire,N/A,5,1,200,True,117.76,7,
+entire,N/A,5,2,200,True,118.86,7,
+entire,N/A,5,3,200,True,121.68,7,
+entire,N/A,5,4,200,True,135.45,7,
+entire,N/A,5,5,200,True,133.89,7,
+entire,N/A,10,1,200,True,307.37,16,
+entire,N/A,10,2,200,True,309.45,16,
+entire,N/A,10,3,200,True,287.41,16,
+entire,N/A,10,4,200,True,310.79,16,
+entire,N/A,10,5,200,True,276.38,16,
+entire,N/A,15,1,200,True,499.94,26,
+entire,N/A,15,2,200,True,490.14,26,
+entire,N/A,15,3,200,True,477.59,26,
+entire,N/A,15,4,200,True,453.77,26,
+entire,N/A,15,5,200,True,356.57,26,
+topic,Neural Networks,5,1,502,False,526.74,20,"{""detail"":""Couldn't generate a valid quiz from this course's materials. Try again.""}"
+topic,Neural Networks,5,2,502,False,301.4,20,"{""detail"":""Couldn't generate a valid quiz from this course's materials. Try again.""}"
+topic,Neural Networks,5,3,502,False,254.12,20,"{""detail"":""Couldn't generate a valid quiz from this course's materials. Try again.""}"
+topic,Neural Networks,5,4,502,False,286.83,20,"{""detail"":""Couldn't generate a valid quiz from this course's materials. Try again.""}"
+topic,Neural Networks,5,5,200,True,2601.21,10,
+topic,Neural Networks,10,1,ERROR,False,709.98,40,"HTTPConnectionPool(host='127.0.0.1', port=8080): Read timed out. (read timeout=600)"
+topic,Neural Networks,10,2,ERROR,False,1707.23,39,"HTTPConnectionPool(host='127.0.0.1', port=8080): Read timed out. (read timeout=600)"
+topic,Neural Networks,10,3,ERROR,False,600.03,40,"HTTPConnectionPool(host='127.0.0.1', port=8080): Read timed out. (read timeout=600)"
+topic,Neural Networks,10,4,ERROR,False,600.03,40,"HTTPConnectionPool(host='127.0.0.1', port=8080): Read timed out. (read timeout=600)"
+topic,Neural Networks,10,5,ERROR,False,600.0,40,"HTTPConnectionPool(host='127.0.0.1', port=8080): Read timed out. (read timeout=600)"

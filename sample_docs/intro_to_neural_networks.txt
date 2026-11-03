@@ -1,0 +1,19 @@
+Lecture 3: Introduction to Neural Networks
+
+A neural network is a computational model inspired by the structure of the
+human brain. It consists of layers of interconnected nodes, or "neurons."
+Each connection has an associated weight, and each neuron applies an
+activation function to the weighted sum of its inputs.
+
+The three main types of layers are: the input layer, one or more hidden
+layers, and the output layer. Training a neural network involves adjusting
+the weights using an algorithm called backpropagation, combined with an
+optimization method such as stochastic gradient descent (SGD).
+
+Common activation functions include ReLU (Rectified Linear Unit), sigmoid,
+and tanh. ReLU is widely used in modern deep networks because it helps
+avoid the vanishing gradient problem.
+
+The course's midterm exam will cover neural network fundamentals, including
+forward propagation, backpropagation, and activation functions. It is
+scheduled for the 6th week of the semester.

@@ -1,0 +1,4 @@
+id,course_id,retrieval_ms,top_sources,RR,P@1,R@1,P@3,R@3,P@4,R@4,P@5,R@5
+Q1,ISWE411L,4004.4,M1-neural-network-fundamentals.pdf > M1-neural-network-fundamentals.pdf > M2-convolutional-neural-networks.pdf > M4-reinforcement-learning.pdf > M3-recurrent-networks-and-lstm.pdf,1.0,1.0,1.0,0.6667,1.0,0.5,1.0,0.4,1.0
+Q2,ISWE411L,29.0,M2-convolutional-neural-networks.pdf > M1-neural-network-fundamentals.pdf > M2-convolutional-neural-networks.pdf > M1-neural-network-fundamentals.pdf > M5-optimization-and-regularization.pdf,1.0,1.0,1.0,0.6667,1.0,0.5,1.0,0.4,1.0
+Q3,MGT2001,22.4,U3-leadership-and-motivation.pdf > U1-introduction-to-management.pdf > U1-introduction-to-management.pdf > U3-leadership-and-motivation.pdf > U3-leadership-and-motivation.pdf,1.0,1.0,1.0,0.3333,1.0,0.5,1.0,0.6,1.0

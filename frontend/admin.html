@@ -1,0 +1,830 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Course Assistant â€” Admin / Testing Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --board: #16211c; --board-2: #1c2b23; --chalk: #ede8da; --chalk-dim: #b9c2b6;
+    --gold: #d4a94a; --sage: #6f8f7f; --sage-dim: #4a6058; --line: rgba(237,232,218,0.14); --danger: #d47a4a;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background: radial-gradient(ellipse at top left, rgba(212,169,74,0.06), transparent 40%),
+                radial-gradient(ellipse at bottom right, rgba(111,143,127,0.08), transparent 45%), var(--board);
+    color:var(--chalk); font-family:'IBM Plex Sans', sans-serif; display:flex; min-height:100vh;
+  }
+  .sidebar{ width:300px; flex-shrink:0; background:var(--board-2); border-right:1px solid var(--line); padding:28px 22px; display:flex; flex-direction:column; gap:20px; }
+  .brand{ font-family:'Source Serif 4', serif; font-weight:600; font-size:1.2rem; }
+  .brand small{ display:block; font-family:'IBM Plex Mono', monospace; font-size:0.66rem; color:var(--gold); text-transform:uppercase; letter-spacing:0.13em; margin-top:6px; }
+  .divider{height:1px;background:var(--line);}
+  .panel-title{ font-family:'IBM Plex Mono', monospace; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.11em; color:var(--chalk-dim); margin-bottom:8px; }
+
+  select, input[type=text]{
+    width:100%; background:rgba(237,232,218,0.06); border:1px solid var(--line); border-radius:6px;
+    padding:9px 10px; color:var(--chalk); font-family:inherit; font-size:0.85rem;
+  }
+  select:focus, input:focus{ outline:none; border-color:var(--gold); }
+
+  .upload-zone{
+    border:1.5px dashed var(--sage-dim); border-radius:6px; padding:14px; text-align:center; cursor:pointer;
+    transition:border-color .15s, background .15s; font-size:0.82rem; color:var(--chalk-dim); margin-top:10px;
+  }
+  .upload-zone:hover{ border-color:var(--gold); color:var(--chalk); background:rgba(212,169,74,0.05); }
+  .upload-zone input{ display:none; }
+
+  #source-list{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px; overflow-y:auto; max-height:220px; }
+  #source-list li{ font-size:0.78rem; color:var(--chalk); background:rgba(237,232,218,0.04); border:1px solid var(--line); border-radius:5px; padding:7px 9px; display:flex; align-items:center; gap:7px; }
+  #source-list li::before{ content:""; width:6px; height:6px; border-radius:50%; background:var(--gold); flex-shrink:0; }
+  .empty-note{ font-size:0.78rem; color:var(--chalk-dim); font-style:italic; }
+
+  .reset-btn{
+    margin-top:auto; background:none; border:1px solid var(--line); color:var(--chalk-dim);
+    font-family:'IBM Plex Mono', monospace; font-size:0.7rem; letter-spacing:0.05em; padding:9px; border-radius:5px; cursor:pointer;
+  }
+  .reset-btn:hover{ border-color:var(--danger); color:var(--danger); }
+
+  .main{ flex:1; display:flex; flex-direction:column; max-width:820px; margin:0 auto; width:100%; }
+  .header{ padding:26px 32px 16px; border-bottom:1px solid var(--line); }
+  .header h1{ font-family:'Source Serif 4', serif; font-weight:500; font-style:italic; font-size:1.45rem; margin:0 0 4px; }
+  .header p{ margin:0; color:var(--chalk-dim); font-size:0.85rem; }
+
+  .chat-log{ flex:1; overflow-y:auto; padding:24px 32px; display:flex; flex-direction:column; gap:18px; }
+  .msg{ max-width:82%; display:flex; flex-direction:column; gap:6px; }
+  .msg.user{ align-self:flex-end; align-items:flex-end; }
+  .msg.bot{ align-self:flex-start; align-items:flex-start; }
+  .bubble{ padding:12px 15px; border-radius:10px; font-size:0.92rem; line-height:1.55; white-space:pre-wrap; }
+  .msg.user .bubble{ background:var(--gold); color:#22190a; border-radius:10px 10px 2px 10px; }
+  .msg.bot .bubble{ background:rgba(237,232,218,0.05); border:1px solid var(--line); border-radius:10px 10px 10px 2px; }
+
+  .concepts-block{ background:rgba(212,169,74,0.06); border:1px solid rgba(212,169,74,0.3); border-radius:8px; padding:9px 12px; width:100%; }
+  .concepts-title{ font-family:'IBM Plex Mono', monospace; font-size:0.64rem; text-transform:uppercase; letter-spacing:.08em; color:var(--gold); margin-bottom:6px; }
+  .concepts-list{ display:flex; flex-wrap:wrap; gap:6px; }
+  .concept-chip{ font-size:0.76rem; background:rgba(212,169,74,0.14); color:#ecd9ab; border:1px solid rgba(212,169,74,0.35); border-radius:100px; padding:3px 9px; }
+
+  .sources-row{ display:flex; flex-wrap:wrap; gap:6px; }
+  .source-tag{ font-family:'IBM Plex Mono', monospace; font-size:0.66rem; color:var(--sage); border:1px solid var(--sage-dim); border-radius:3px; padding:3px 7px; }
+
+  .typing{ display:flex; gap:4px; padding:12px 15px; }
+  .typing span{ width:6px; height:6px; border-radius:50%; background:var(--chalk-dim); animation:blink 1.2s infinite; }
+  .typing span:nth-child(2){ animation-delay:.2s; }
+  .typing span:nth-child(3){ animation-delay:.4s; }
+  @keyframes blink{ 0%,80%,100%{opacity:.25;} 40%{opacity:1;} }
+
+  .composer{ padding:16px 32px 24px; border-top:1px solid var(--line); display:flex; gap:10px; }
+  .composer input{ flex:1; padding:12px 14px; }
+  .composer button{
+    background:var(--gold); color:#22190a; border:none; border-radius:8px; padding:0 20px;
+    font-family:inherit; font-weight:600; font-size:0.88rem; cursor:pointer;
+  }
+  .composer button:disabled{ opacity:0.45; cursor:not-allowed; }
+
+  .status-banner{ font-family:'IBM Plex Mono', monospace; font-size:0.7rem; color:var(--chalk-dim); padding:8px 32px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px; }
+  .status-dot{ width:7px; height:7px; border-radius:50%; background:var(--danger); }
+  .status-dot.ok{ background:var(--sage); }
+
+  .test-toolbar{
+    padding:10px 32px; border-bottom:1px solid var(--line); display:flex; align-items:center;
+    gap:16px; flex-wrap:wrap;
+  }
+  .tabs{ display:flex; gap:6px; }
+  .tab-btn, .mode-btn, .topics-btn{
+    background:rgba(237,232,218,0.05); border:1px solid var(--line); color:var(--chalk-dim);
+    font-family:'IBM Plex Sans', sans-serif; font-size:0.76rem; padding:6px 12px; border-radius:6px; cursor:pointer;
+  }
+  .tab-btn.active, .mode-btn.active{ background:rgba(212,169,74,0.16); border-color:rgba(212,169,74,0.45); color:#ecd9ab; }
+  .tab-btn:disabled, .mode-btn:disabled, .topics-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .mode-group{ display:flex; align-items:center; gap:6px; }
+  .mode-label{ font-family:'IBM Plex Mono', monospace; font-size:0.68rem; color:var(--chalk-dim); text-transform:uppercase; letter-spacing:.06em; margin-right:2px; }
+  .topics-btn{ margin-left:auto; }
+
+  .type-badge{
+    font-family:'IBM Plex Mono', monospace; font-size:0.66rem; text-transform:uppercase; letter-spacing:.06em;
+    padding:3px 9px; border-radius:4px; align-self:flex-start; margin-bottom:2px;
+  }
+  .type-badge.general{ background:rgba(212,122,74,0.15); color:#e2a988; border:1px solid rgba(212,122,74,0.4); }
+
+  .search-results{ display:flex; flex-direction:column; gap:8px; width:100%; }
+  .search-result-card{ background:rgba(237,232,218,0.04); border:1px solid var(--line); border-radius:8px; padding:9px 12px; }
+  .search-result-source{ font-family:'IBM Plex Mono', monospace; font-size:0.72rem; color:var(--gold); margin-bottom:4px; }
+  .search-result-snippet{ font-size:0.85rem; line-height:1.5; }
+
+  .quiz-panel{ flex:1; overflow-y:auto; padding:24px 32px; display:flex; flex-direction:column; gap:16px; }
+  .quiz-section-title{ font-family:'IBM Plex Mono', monospace; font-size:0.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--gold); margin-bottom:8px; }
+  .quiz-choice-row{ display:flex; flex-wrap:wrap; gap:6px; }
+  .quiz-choice-btn{
+    background:rgba(237,232,218,0.05); border:1px solid var(--line); color:var(--chalk);
+    font-family:inherit; font-size:0.85rem; padding:8px 13px; border-radius:8px; cursor:pointer; text-align:left;
+  }
+  .quiz-choice-btn:hover{ border-color:rgba(212,169,74,0.4); }
+  .quiz-choice-btn.selected{ background:rgba(212,169,74,0.14); border-color:var(--gold); color:#ecd9ab; }
+  .quiz-choice-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .quiz-topic-list{ display:flex; flex-wrap:wrap; gap:6px; max-height:130px; overflow-y:auto; }
+  .quiz-generate-btn{
+    background:var(--gold); color:#22190a; border:none; border-radius:8px; padding:11px 16px;
+    font-weight:600; font-size:0.88rem; cursor:pointer; font-family:inherit; margin-top:4px;
+  }
+  .quiz-generate-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .quiz-secondary-btn{
+    background:rgba(237,232,218,0.05); border:1px solid var(--line); color:var(--chalk);
+    border-radius:8px; padding:10px 16px; font-size:0.85rem; cursor:pointer; font-family:inherit;
+  }
+  .quiz-actions-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .quiz-status-msg{ font-size:0.88rem; color:var(--chalk-dim); }
+  .quiz-error-box{ background:rgba(212,122,74,0.1); border:1px solid rgba(212,122,74,0.35); border-radius:8px; padding:10px 12px; font-size:0.85rem; color:#e2a988; }
+  .quiz-progress{ font-family:'IBM Plex Mono', monospace; font-size:0.72rem; color:var(--chalk-dim); text-transform:uppercase; letter-spacing:.06em; }
+  .quiz-question-text{ font-size:0.98rem; line-height:1.55; }
+  .quiz-answer-btn{
+    background:rgba(237,232,218,0.05); border:1px solid var(--line); color:var(--chalk);
+    font-family:inherit; font-size:0.88rem; padding:11px 13px; border-radius:8px; cursor:pointer; text-align:left; line-height:1.4;
+  }
+  .quiz-answer-btn:hover:not(:disabled){ border-color:rgba(212,169,74,0.4); }
+  .quiz-answer-btn:disabled{ cursor:default; }
+  .quiz-answer-btn.correct{ background:rgba(111,143,127,0.18); border-color:var(--sage); }
+  .quiz-answer-btn.incorrect{ background:rgba(212,122,74,0.15); border-color:var(--danger); }
+  .quiz-feedback-box{ background:rgba(237,232,218,0.04); border:1px solid var(--line); border-radius:8px; padding:11px 13px; display:flex; flex-direction:column; gap:6px; }
+  .quiz-feedback-verdict{ font-weight:600; font-size:0.88rem; }
+  .quiz-feedback-verdict.correct{ color:#9fbcaf; }
+  .quiz-feedback-verdict.incorrect{ color:#e2a988; }
+  .quiz-score-display{ text-align:center; padding:10px 0; }
+  .quiz-score-number{ font-family:'Source Serif 4', serif; font-size:2.3rem; color:var(--gold); font-weight:600; }
+  .quiz-score-label{ font-size:0.8rem; color:var(--chalk-dim); margin-top:2px; }
+  .quiz-review-item{ border-top:1px solid var(--line); padding:10px 0; display:flex; flex-direction:column; gap:5px; }
+  .quiz-review-item:first-child{ border-top:none; }
+  .quiz-review-question{ font-size:0.88rem; font-weight:600; }
+  .quiz-review-line{ font-size:0.84rem; line-height:1.5; }
+  .quiz-review-line.correct{ color:#9fbcaf; }
+  .quiz-review-line.incorrect{ color:#e2a988; }
+  .quiz-review-explanation{ font-size:0.8rem; color:var(--chalk-dim); line-height:1.5; }
+
+  ::-webkit-scrollbar{ width:8px; }
+  ::-webkit-scrollbar-thumb{ background:rgba(237,232,218,0.12); border-radius:4px; }
+  @media (max-width: 760px){ .sidebar{ display:none; } }
+</style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">Course Assistant<small>Admin / Testing Panel</small></div>
+    <div class="divider"></div>
+
+    <div>
+      <div class="panel-title">Course</div>
+      <select id="course-select"><option value="">Loading coursesâ€¦</option></select>
+    </div>
+
+    <div>
+      <div class="panel-title">Manual Upload (fallback to faculty_watch.py)</div>
+      <label class="upload-zone" id="upload-zone">
+        Drop a PDF/TXT here into the selected course<br>or click to browse
+        <input type="file" id="file-input" accept=".pdf,.txt,.md" multiple>
+      </label>
+    </div>
+
+    <div style="flex:1; display:flex; flex-direction:column; min-height:0;">
+      <div class="panel-title">Indexed Materials (selected course)</div>
+      <ul id="source-list"></ul>
+      <div class="empty-note" id="empty-note">No documents indexed for this course yet.</div>
+    </div>
+
+    <button class="reset-btn" id="reset-btn">CLEAR THIS COURSE'S DATA</button>
+  </aside>
+
+  <main class="main">
+    <div class="header">
+      <h1>Admin / testing panel</h1>
+      <p>Not shown to students. The student-facing experience is the widget (widget.js + course-page.html).</p>
+    </div>
+
+    <div class="status-banner">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">Checking backend connectionâ€¦</span>
+    </div>
+
+    <div class="test-toolbar">
+      <div class="tabs">
+        <button type="button" class="tab-btn active" id="tab-ask" data-tab="ask">Ask</button>
+        <button type="button" class="tab-btn" id="tab-search" data-tab="search">Search Materials</button>
+        <button type="button" class="tab-btn" id="tab-quiz" data-tab="quiz">Quiz</button>
+      </div>
+      <div class="mode-group" id="mode-group">
+        <span class="mode-label">Mode:</span>
+        <button type="button" class="mode-btn active" data-mode="normal">Normal</button>
+        <button type="button" class="mode-btn" data-mode="simple">Simple</button>
+        <button type="button" class="mode-btn" data-mode="exam">Exam</button>
+      </div>
+      <button type="button" class="topics-btn" id="topics-btn" disabled>Important Topics</button>
+    </div>
+
+    <div class="chat-log" id="chat-log"></div>
+    <div class="quiz-panel" id="quiz-panel" style="display:none;"></div>
+
+    <form class="composer" id="composer">
+      <input type="text" id="question-input" placeholder="e.g. When is the midterm exam?" autocomplete="off" disabled>
+      <button type="submit" id="send-btn" disabled>Ask</button>
+    </form>
+  </main>
+
+<script>
+  const API_BASE = "http://127.0.0.1:8080";
+  let courseId = null;
+
+  const chatLog = document.getElementById('chat-log');
+  const form = document.getElementById('composer');
+  const input = document.getElementById('question-input');
+  const sendBtn = document.getElementById('send-btn');
+  const sourceList = document.getElementById('source-list');
+  const emptyNote = document.getElementById('empty-note');
+  const uploadZone = document.getElementById('upload-zone');
+  const fileInput = document.getElementById('file-input');
+  const resetBtn = document.getElementById('reset-btn');
+  const statusDot = document.getElementById('status-dot');
+  const statusText = document.getElementById('status-text');
+  const courseSelect = document.getElementById('course-select');
+  const tabAsk = document.getElementById('tab-ask');
+  const tabSearch = document.getElementById('tab-search');
+  const tabQuiz = document.getElementById('tab-quiz');
+  const modeGroup = document.getElementById('mode-group');
+  const modeButtons = [...modeGroup.querySelectorAll('.mode-btn')];
+  const topicsBtn = document.getElementById('topics-btn');
+  const quizPanel = document.getElementById('quiz-panel');
+
+  let currentTab = 'ask';
+  let currentMode = 'normal';
+
+  function setTab(tab) {
+    currentTab = tab;
+    tabAsk.classList.toggle('active', tab === 'ask');
+    tabSearch.classList.toggle('active', tab === 'search');
+    tabQuiz.classList.toggle('active', tab === 'quiz');
+    modeGroup.style.display = tab === 'ask' ? 'flex' : 'none';
+
+    if (tab === 'quiz') {
+      chatLog.style.display = 'none';
+      form.style.display = 'none';
+      quizPanel.style.display = 'flex';
+      if (quizState === 'idle') renderQuizSetup();
+    } else {
+      chatLog.style.display = 'flex';
+      form.style.display = 'flex';
+      quizPanel.style.display = 'none';
+      input.placeholder = tab === 'ask' ? 'e.g. When is the midterm exam?' : 'Search course materials...';
+      sendBtn.textContent = tab === 'ask' ? 'Ask' : 'Search';
+    }
+  }
+  tabAsk.addEventListener('click', () => setTab('ask'));
+  tabSearch.addEventListener('click', () => setTab('search'));
+  tabQuiz.addEventListener('click', () => setTab('quiz'));
+  modeButtons.forEach(btn => btn.addEventListener('click', () => {
+    currentMode = btn.dataset.mode;
+    modeButtons.forEach(b => b.classList.toggle('active', b === btn));
+  }));
+
+  // ---- Quiz testing (same feature as widget.js, adapted for this admin page) ----
+  let quizState = 'idle';
+  let quizScope = null;
+  let quizTopic = null;
+  let quizNumQuestions = 5;
+  let quizDifficulty = 'medium';
+  let quizQuestions = [];
+  let quizIndex = 0;
+  let quizAnswers = [];
+  let quizTopicsCache = null;
+
+  function resetQuizState() {
+    quizState = 'idle';
+    quizScope = null;
+    quizTopic = null;
+    quizNumQuestions = 5;
+    quizDifficulty = 'medium';
+    quizQuestions = [];
+    quizIndex = 0;
+    quizAnswers = [];
+    quizTopicsCache = null;
+  }
+
+  async function fetchQuizTopics() {
+    if (quizTopicsCache) return quizTopicsCache;
+    try {
+      const res = await fetch(`${API_BASE}/important-topics?course_id=${encodeURIComponent(courseId)}`);
+      const data = await res.json();
+      quizTopicsCache = res.ok ? (data.topics || []) : [];
+    } catch (e) {
+      quizTopicsCache = [];
+    }
+    return quizTopicsCache;
+  }
+
+  function renderQuizSetup() {
+    quizState = 'setup';
+    quizPanel.innerHTML = `
+      <div>
+        <div class="quiz-section-title">Quiz Scope</div>
+        <div class="quiz-choice-row">
+          <button type="button" class="quiz-choice-btn" data-scope="entire">Entire Course</button>
+          <button type="button" class="quiz-choice-btn" data-scope="topic">Select Topic</button>
+        </div>
+        <div id="quiz-topic-area" style="margin-top:8px;"></div>
+      </div>
+      <div>
+        <div class="quiz-section-title">Number of Questions</div>
+        <div class="quiz-choice-row">
+          <button type="button" class="quiz-choice-btn" data-count="5">5</button>
+          <button type="button" class="quiz-choice-btn" data-count="10">10</button>
+          <button type="button" class="quiz-choice-btn" data-count="15">15</button>
+        </div>
+      </div>
+      <div>
+        <div class="quiz-section-title">Difficulty</div>
+        <div class="quiz-choice-row">
+          <button type="button" class="quiz-choice-btn" data-difficulty="easy">Easy</button>
+          <button type="button" class="quiz-choice-btn" data-difficulty="medium">Medium</button>
+          <button type="button" class="quiz-choice-btn" data-difficulty="hard">Hard</button>
+        </div>
+      </div>
+      <div id="quiz-setup-error"></div>
+      <button type="button" class="quiz-generate-btn" id="quiz-generate-btn" disabled>Generate Quiz</button>
+    `;
+
+    const scopeBtns = [...quizPanel.querySelectorAll('[data-scope]')];
+    const countBtns = [...quizPanel.querySelectorAll('[data-count]')];
+    const difficultyBtns = [...quizPanel.querySelectorAll('[data-difficulty]')];
+    const topicArea = quizPanel.querySelector('#quiz-topic-area');
+    const generateBtn = quizPanel.querySelector('#quiz-generate-btn');
+    const setupError = quizPanel.querySelector('#quiz-setup-error');
+
+    countBtns.forEach(b => b.classList.toggle('selected', Number(b.dataset.count) === quizNumQuestions));
+    difficultyBtns.forEach(b => b.classList.toggle('selected', b.dataset.difficulty === quizDifficulty));
+    if (quizScope) scopeBtns.forEach(b => b.classList.toggle('selected', b.dataset.scope === quizScope));
+
+    function updateGenerateEnabled() {
+      const ready = quizScope && (quizScope === 'entire' || (quizScope === 'topic' && quizTopic));
+      generateBtn.disabled = !ready;
+    }
+
+    scopeBtns.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        quizScope = btn.dataset.scope;
+        scopeBtns.forEach(b => b.classList.toggle('selected', b === btn));
+        if (quizScope === 'entire') {
+          quizTopic = null;
+          topicArea.innerHTML = '';
+        } else {
+          topicArea.innerHTML = `<div class="quiz-status-msg">Loading topicsâ€¦</div>`;
+          const topics = await fetchQuizTopics();
+          if (!topics.length) {
+            topicArea.innerHTML = `<div class="quiz-status-msg">No Important Topics available yet â€” try "Entire Course".</div>`;
+          } else {
+            topicArea.innerHTML = `<div class="quiz-topic-list">${topics.map(t => `<button type="button" class="quiz-choice-btn" data-topic="${t}">${t}</button>`).join('')}</div>`;
+            const topicBtns = [...topicArea.querySelectorAll('[data-topic]')];
+            topicBtns.forEach(tb => tb.addEventListener('click', () => {
+              quizTopic = tb.dataset.topic;
+              topicBtns.forEach(b => b.classList.toggle('selected', b === tb));
+              updateGenerateEnabled();
+            }));
+          }
+        }
+        updateGenerateEnabled();
+      });
+    });
+
+    countBtns.forEach(btn => btn.addEventListener('click', () => {
+      quizNumQuestions = Number(btn.dataset.count);
+      countBtns.forEach(b => b.classList.toggle('selected', b === btn));
+    }));
+
+    difficultyBtns.forEach(btn => btn.addEventListener('click', () => {
+      quizDifficulty = btn.dataset.difficulty;
+      difficultyBtns.forEach(b => b.classList.toggle('selected', b === btn));
+    }));
+
+    generateBtn.addEventListener('click', async () => {
+      quizState = 'loading';
+      quizPanel.innerHTML = `<div class="quiz-status-msg">Generating quiz â€” this can take a while on a local modelâ€¦</div>`;
+      try {
+        const res = await fetch(`${API_BASE}/quiz/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            course_id: courseId, scope: quizScope,
+            topic: quizScope === 'topic' ? quizTopic : null,
+            num_questions: quizNumQuestions, difficulty: quizDifficulty,
+          }),
+        });
+        const data = await res.json();
+        if (res.ok && data.questions && data.questions.length) {
+          quizQuestions = data.questions;
+          quizAnswers = new Array(quizQuestions.length).fill(null);
+          quizIndex = 0;
+          quizState = 'active';
+          renderQuizQuestion();
+        } else {
+          quizState = 'setup';
+          renderQuizSetup();
+          const err = quizPanel.querySelector('#quiz-setup-error');
+          if (err) err.innerHTML = `<div class="quiz-error-box">${data.detail || 'Could not generate a quiz.'}</div>`;
+        }
+      } catch (e) {
+        quizState = 'setup';
+        renderQuizSetup();
+        const err = quizPanel.querySelector('#quiz-setup-error');
+        if (err) err.innerHTML = `<div class="quiz-error-box">Could not reach the backend.</div>`;
+      }
+    });
+
+    updateGenerateEnabled();
+  }
+
+  function renderQuizQuestion() {
+    const q = quizQuestions[quizIndex];
+    const total = quizQuestions.length;
+    const alreadyAnswered = quizAnswers[quizIndex] !== null;
+
+    quizPanel.innerHTML = `
+      <div class="quiz-progress">Question ${quizIndex + 1} of ${total}</div>
+      <div class="quiz-question-text">${q.question}</div>
+      <div id="quiz-options" style="display:flex; flex-direction:column; gap:8px;"></div>
+      <div id="quiz-feedback-area"></div>
+      <div class="quiz-actions-row" id="quiz-nav-area"></div>
+    `;
+
+    const optionsWrap = quizPanel.querySelector('#quiz-options');
+    q.options.forEach((optionText, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'quiz-answer-btn';
+      btn.textContent = optionText;
+      if (alreadyAnswered) {
+        btn.disabled = true;
+        if (i === q.correct_index) btn.classList.add('correct');
+        else if (i === quizAnswers[quizIndex]) btn.classList.add('incorrect');
+      }
+      btn.addEventListener('click', () => selectQuizAnswer(i));
+      optionsWrap.appendChild(btn);
+    });
+
+    if (alreadyAnswered) {
+      renderQuizFeedback();
+      renderQuizNav();
+    }
+  }
+
+  function renderQuizFeedback() {
+    const q = quizQuestions[quizIndex];
+    const selected = quizAnswers[quizIndex];
+    const isCorrect = selected === q.correct_index;
+    const area = quizPanel.querySelector('#quiz-feedback-area');
+    if (!area) return;
+    area.innerHTML = `
+      <div class="quiz-feedback-box">
+        <div class="quiz-feedback-verdict ${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Correct' : 'Not quite'}</div>
+        <div>${q.explanation}</div>
+        <span class="source-tag">${q.source}</span>
+      </div>
+    `;
+  }
+
+  function renderQuizNav() {
+    const area = quizPanel.querySelector('#quiz-nav-area');
+    if (!area) return;
+    const isLast = quizIndex === quizQuestions.length - 1;
+    area.innerHTML = `<button type="button" class="quiz-generate-btn" id="quiz-next-btn">${isLast ? 'See Results' : 'Next Question'}</button>`;
+    area.querySelector('#quiz-next-btn').addEventListener('click', () => {
+      if (isLast) { quizState = 'result'; renderQuizResult(); }
+      else { quizIndex += 1; renderQuizQuestion(); }
+    });
+  }
+
+  function selectQuizAnswer(optionIndex) {
+    if (quizAnswers[quizIndex] !== null) return;
+    quizAnswers[quizIndex] = optionIndex;
+    renderQuizQuestion();
+  }
+
+  function renderQuizResult() {
+    const total = quizQuestions.length;
+    const correctCount = quizQuestions.reduce((acc, q, i) => acc + (quizAnswers[i] === q.correct_index ? 1 : 0), 0);
+    const reviewHtml = quizQuestions.map((q, i) => {
+      const selected = quizAnswers[i];
+      const isCorrect = selected === q.correct_index;
+      return `
+        <div class="quiz-review-item">
+          <div class="quiz-review-question">${i + 1}. ${q.question}</div>
+          <div class="quiz-review-line ${isCorrect ? 'correct' : 'incorrect'}">
+            Your answer: ${q.options[selected]}${isCorrect ? '' : ` â€” Correct: ${q.options[q.correct_index]}`}
+          </div>
+          <div class="quiz-review-explanation">${q.explanation}</div>
+          <span class="source-tag">${q.source}</span>
+        </div>
+      `;
+    }).join('');
+
+    quizPanel.innerHTML = `
+      <div class="quiz-score-display">
+        <div class="quiz-score-number">${correctCount} / ${total}</div>
+        <div class="quiz-score-label">${quizScope === 'topic' ? `Topic: ${quizTopic}` : 'Entire Course'} Â· ${quizDifficulty}</div>
+      </div>
+      <div class="quiz-actions-row">
+        <button type="button" class="quiz-secondary-btn" id="quiz-retry-btn">Retry Same Quiz</button>
+        <button type="button" class="quiz-secondary-btn" id="quiz-new-btn">New Quiz</button>
+      </div>
+      <div class="quiz-section-title">Review</div>
+      ${reviewHtml}
+    `;
+    quizPanel.querySelector('#quiz-retry-btn').addEventListener('click', () => {
+      quizAnswers = new Array(quizQuestions.length).fill(null);
+      quizIndex = 0; quizState = 'active'; renderQuizQuestion();
+    });
+    quizPanel.querySelector('#quiz-new-btn').addEventListener('click', () => {
+      quizQuestions = []; quizAnswers = []; quizIndex = 0; quizState = 'setup'; renderQuizSetup();
+    });
+  }
+
+  function addMessage(role, { text, concepts = [], sources = [], badge = null } = {}) {
+    const msg = document.createElement('div');
+    msg.className = `msg ${role}`;
+
+    if (badge) {
+      const badgeEl = document.createElement('div');
+      badgeEl.className = `type-badge ${badge.kind}`;
+      badgeEl.textContent = badge.label;
+      msg.appendChild(badgeEl);
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = text;
+    msg.appendChild(bubble);
+
+    if (concepts.length) {
+      const block = document.createElement('div');
+      block.className = 'concepts-block';
+      block.innerHTML = `<div class="concepts-title">Important Concepts</div>
+        <div class="concepts-list">${concepts.map(c => `<span class="concept-chip">${c}</span>`).join('')}</div>`;
+      msg.appendChild(block);
+    }
+
+    if (sources.length) {
+      const row = document.createElement('div');
+      row.className = 'sources-row';
+      sources.forEach(s => {
+        const tag = document.createElement('span');
+        tag.className = 'source-tag';
+        tag.textContent = s;
+        row.appendChild(tag);
+      });
+      msg.appendChild(row);
+    }
+    chatLog.appendChild(msg);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  function addSearchResults(results) {
+    const msg = document.createElement('div');
+    msg.className = 'msg bot';
+    if (!results.length) {
+      msg.innerHTML = `<div class="bubble">No matching materials found for that search.</div>`;
+      chatLog.appendChild(msg);
+      chatLog.scrollTop = chatLog.scrollHeight;
+      return;
+    }
+    const wrapEl = document.createElement('div');
+    wrapEl.className = 'search-results';
+    results.forEach(r => {
+      wrapEl.innerHTML += `
+        <div class="search-result-card">
+          <div class="search-result-source">${r.title} Â· score ${r.score}</div>
+          <div class="search-result-snippet">${r.snippet}</div>
+        </div>`;
+    });
+    msg.appendChild(wrapEl);
+    chatLog.appendChild(msg);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  function addTopics(topics, sourceType, courseLabel) {
+    const msg = document.createElement('div');
+    msg.className = 'msg bot';
+    if (!topics.length) {
+      msg.innerHTML = `<div class="bubble">No materials indexed yet â€” nothing to summarize.</div>`;
+    } else {
+      msg.innerHTML = `<div class="concepts-block">
+        <div class="concepts-title">Important Topics â€” ${courseLabel}</div>
+        <div class="concepts-list">${topics.map(t => `<span class="concept-chip">${t}</span>`).join('')}</div>
+      </div>` + (sourceType === 'document_titles_fallback'
+        ? `<div class="bubble" style="font-size:0.78rem;opacity:0.75;">(LLM unavailable â€” showing document titles instead of a synthesized summary.)</div>`
+        : '');
+    }
+    chatLog.appendChild(msg);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  function addTyping() {
+    const msg = document.createElement('div');
+    msg.className = 'msg bot';
+    msg.id = 'typing-indicator';
+    msg.innerHTML = `<div class="bubble typing"><span></span><span></span><span></span></div>`;
+    chatLog.appendChild(msg);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+  function removeTyping() {
+    const el = document.getElementById('typing-indicator');
+    if (el) el.remove();
+  }
+
+  async function checkHealth() {
+    try {
+      const res = await fetch(`${API_BASE}/`);
+      if (res.ok) {
+        statusDot.classList.add('ok');
+        statusText.textContent = 'Connected to backend at ' + API_BASE;
+        return true;
+      }
+    } catch (e) {}
+    statusDot.classList.remove('ok');
+    statusText.textContent = `Backend not reachable at ${API_BASE} â€” start it with "uvicorn main:app --reload"`;
+    return false;
+  }
+
+  async function loadCourses() {
+    try {
+      const res = await fetch(`${API_BASE}/courses`);
+      const data = await res.json();
+      const courses = data.courses || [];
+      courseSelect.innerHTML = courses.length
+        ? courses.map(c => `<option value="${c.id}">${c.name} (${c.id})</option>`).join('')
+        : `<option value="">No courses registered yet</option>`;
+      if (courses.length) {
+        courseId = courses[0].id;
+        courseSelect.value = courseId;
+        onCourseChange();
+      }
+    } catch (e) {
+      courseSelect.innerHTML = `<option value="">Couldn't load courses</option>`;
+    }
+  }
+
+  async function refreshSources() {
+    if (!courseId) return;
+    try {
+      const res = await fetch(`${API_BASE}/materials?course_id=${encodeURIComponent(courseId)}`);
+      const data = await res.json();
+      sourceList.innerHTML = '';
+      const materials = data.materials || [];
+      if (!materials.length) {
+        emptyNote.style.display = 'block';
+      } else {
+        emptyNote.style.display = 'none';
+        materials.forEach(m => {
+          const li = document.createElement('li');
+          li.textContent = m.title;
+          sourceList.appendChild(li);
+        });
+      }
+    } catch (e) {}
+  }
+
+  function onCourseChange() {
+    courseId = courseSelect.value;
+    input.disabled = !courseId;
+    sendBtn.disabled = !courseId;
+    topicsBtn.disabled = !courseId;
+    resetQuizState();
+    setTab('ask');
+    currentMode = 'normal';
+    modeButtons.forEach(b => b.classList.toggle('active', b.dataset.mode === 'normal'));
+    chatLog.innerHTML = '';
+    refreshSources();
+    if (courseId) addMessage('bot', { text: `Testing mode for course: ${courseId}` });
+  }
+  courseSelect.addEventListener('change', onCourseChange);
+
+  async function uploadFiles(files) {
+    if (!courseId) { addMessage('bot', { text: 'Select a course first.' }); return; }
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('course_id', courseId);
+      addMessage('bot', { text: `Indexing "${file.name}" into ${courseId}â€¦` });
+      try {
+        const res = await fetch(`${API_BASE}/upload`, { method: 'POST', body: formData });
+        const data = await res.json();
+        addMessage('bot', { text: res.ok ? data.message : `Failed to index ${file.name}: ${data.detail}` });
+      } catch (e) {
+        addMessage('bot', { text: `Could not reach backend to upload ${file.name}.` });
+      }
+    }
+    refreshSources();
+  }
+
+  uploadZone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length) uploadFiles(e.target.files);
+    fileInput.value = '';
+  });
+  uploadZone.addEventListener('dragover', e => e.preventDefault());
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    if (e.dataTransfer.files.length) uploadFiles(e.dataTransfer.files);
+  });
+
+  resetBtn.addEventListener('click', async () => {
+    if (!courseId || !confirm(`Clear all indexed data for ${courseId}?`)) return;
+    try {
+      await fetch(`${API_BASE}/reset?course_id=${encodeURIComponent(courseId)}`, { method: 'POST' });
+    } catch (e) {}
+    chatLog.innerHTML = '';
+    refreshSources();
+    addMessage('bot', { text: `Data cleared for ${courseId}.` });
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const question = input.value.trim();
+    if (!question || !courseId) return;
+    input.value = '';
+    if (currentTab === 'search') {
+      addMessage('user', { text: question });
+      sendBtn.disabled = true;
+      addTyping();
+      try {
+        const url = `${API_BASE}/search-materials?course_id=${encodeURIComponent(courseId)}&query=${encodeURIComponent(question)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        removeTyping();
+        if (res.ok) {
+          addSearchResults(data.results || []);
+        } else {
+          addMessage('bot', { text: `Error: ${data.detail || 'search failed.'}` });
+        }
+      } catch (err) {
+        removeTyping();
+        addMessage('bot', { text: 'Could not reach the backend. Is the server running?' });
+      } finally {
+        sendBtn.disabled = false;
+      }
+      return;
+    }
+
+    addMessage('user', { text: question });
+    sendBtn.disabled = true;
+    addTyping();
+    try {
+      const res = await fetch(`${API_BASE}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, course_id: courseId, mode: currentMode })
+      });
+      const data = await res.json();
+      removeTyping();
+      if (res.ok) {
+        const badge = data.source_type === 'general_fallback'
+          ? { kind: 'general', label: 'General knowledge â€” not from course material' }
+          : null;
+        addMessage('bot', { text: data.explanation, concepts: data.concepts, sources: data.sources, badge });
+      } else {
+        addMessage('bot', { text: `Error: ${data.detail || 'something went wrong.'}` });
+      }
+    } catch (err) {
+      removeTyping();
+      addMessage('bot', { text: 'Could not reach the backend. Is the server running?' });
+    } finally {
+      sendBtn.disabled = false;
+    }
+  });
+
+  topicsBtn.addEventListener('click', async () => {
+    if (!courseId) return;
+    topicsBtn.disabled = true;
+    addTyping();
+    try {
+      const res = await fetch(`${API_BASE}/important-topics?course_id=${encodeURIComponent(courseId)}`);
+      const data = await res.json();
+      removeTyping();
+      if (res.ok) {
+        addTopics(data.topics || [], data.source_type, courseId);
+      } else {
+        addMessage('bot', { text: `Error: ${data.detail || 'could not load topics.'}` });
+      }
+    } catch (err) {
+      removeTyping();
+      addMessage('bot', { text: 'Could not reach the backend. Is the server running?' });
+    } finally {
+      topicsBtn.disabled = false;
+    }
+  });
+
+  (async () => {
+    const ok = await checkHealth();
+    if (ok) loadCourses();
+  })();
+</script>
+</body>
+</html>
+

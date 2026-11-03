@@ -1,0 +1,200 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Course Page - view</title>
+<style>
+  :root{
+    --ink:#1f2937; --muted:#6b7280; --line:#e0e3e8; --bg:#f4f6f8; --panel:#ffffff;
+    --accent:#1d63c9; --accent-dark:#134f9e; --accent-bg:#eaf1fc;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background:var(--bg); color:var(--ink); }
+
+  .topbar{
+    background:linear-gradient(180deg,#1d63c9,#134f9e);
+    color:#fff; padding:12px 24px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .topbar-left{ display:flex; align-items:center; gap:12px; }
+  .logo-mark{
+    width:34px; height:34px; border-radius:8px; background:#fff;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--accent-dark); font-weight:800; font-size:0.95rem;
+  }
+  .portal-name{ font-weight:700; font-size:1.05rem; letter-spacing:0.01em; }
+  .portal-name small{ display:block; font-weight:400; font-size:0.7rem; opacity:0.85; }
+  .user-chip{ font-size:0.82rem; opacity:0.95; display:flex; align-items:center; gap:8px; }
+  .user-chip .avatar{ width:26px; height:26px; border-radius:50%; background:rgba(255,255,255,0.25); }
+
+  .navbar{
+    background:#fff; border-bottom:1px solid var(--line);
+    padding:9px 24px; display:flex; gap:22px; font-size:0.82rem; color:var(--muted);
+  }
+  .navbar span.active{ color:var(--accent); font-weight:600; }
+
+  .content{ max-width:980px; margin:0 auto; padding:26px 24px 60px; }
+  h1.page-title{ font-size:1.35rem; margin:0 0 18px; font-weight:600; }
+
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:8px; margin-bottom:20px; box-shadow:0 1px 2px rgba(0,0,0,0.02); }
+  .card-body{ padding:18px 20px; }
+  .card-label{ font-size:0.95rem; font-weight:600; margin-bottom:12px; color:var(--ink); }
+
+  select#course-select{
+    width:100%; padding:11px 12px; font-size:0.88rem; border:1px solid var(--line);
+    border-radius:6px; background:#fff; color:var(--ink); cursor:pointer;
+  }
+  select#course-select:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-bg); }
+
+  .materials-card .card-header{
+    padding:13px 20px; border-bottom:1px solid var(--line); font-weight:600; font-size:0.9rem;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .course-meta{ font-size:0.78rem; color:var(--muted); font-weight:400; }
+  table{ width:100%; border-collapse:collapse; }
+  th, td{ text-align:left; padding:11px 20px; font-size:0.85rem; border-bottom:1px solid var(--line); }
+  th{ color:var(--muted); font-weight:600; font-size:0.73rem; text-transform:uppercase; letter-spacing:0.03em; }
+  tr:last-child td{ border-bottom:none; }
+  .file-link{ color:var(--accent); text-decoration:none; font-weight:500; }
+  .file-link:hover{ text-decoration:underline; }
+  .dl-link{ color:var(--muted); text-decoration:none; font-size:0.78rem; }
+  .dl-link:hover{ color:var(--accent); text-decoration:underline; }
+  .tag{ display:inline-block; font-size:0.68rem; padding:2px 8px; border-radius:100px; background:var(--accent-bg); color:var(--accent); font-weight:600; }
+  .empty-note{ padding:26px 20px; font-size:0.86rem; color:var(--muted); text-align:center; }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo-mark">CP</div>
+      <div class="portal-name">College Portal<small>Student Self-Service</small></div>
+    </div>
+    <div class="user-chip"><span class="avatar"></span> 23MIS0568 (STUDENT)</div>
+  </div>
+
+  <div class="navbar">
+    <span class="active">Academics</span>
+    <span>Examinations</span>
+    <span>Admissions</span>
+    <span>Finance</span>
+    <span>Events</span>
+    <span>Services</span>
+    <span>Feedback</span>
+  </div>
+
+  <div class="content">
+    <h1 class="page-title">Course Page - view</h1>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="card-label">Select Registered Course</div>
+        <select id="course-select">
+          <option value="">-- Registered Courses --</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card materials-card">
+      <div class="card-header">
+        <span>Course Materials</span>
+        <span class="course-meta" id="course-meta"></span>
+      </div>
+      <table id="materials-table" style="display:none;">
+        <thead><tr><th>File</th><th>Type</th><th></th></tr></thead>
+        <tbody id="materials-body"></tbody>
+      </table>
+      <div class="empty-note" id="materials-empty">Select a registered course above to view its materials.</div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8080";
+    const courseSelect = document.getElementById("course-select");
+    const materialsTable = document.getElementById("materials-table");
+    const materialsBody = document.getElementById("materials-body");
+    const materialsEmpty = document.getElementById("materials-empty");
+    const courseMeta = document.getElementById("course-meta");
+
+    let coursesById = {};
+
+    async function loadCourseOptions() {
+      try {
+        const res = await fetch(`${API_BASE}/courses`);
+        const data = await res.json();
+        const courses = data.courses || [];
+        courses.forEach(c => (coursesById[c.id] = c));
+        courseSelect.innerHTML =
+          `<option value="">-- Registered Courses --</option>` +
+          courses.map(c => {
+            const label = [c.semester, c.id, c.name, c.type, c.credits]
+              .filter(Boolean).join(" - ");
+            return `<option value="${c.id}">${label}</option>`;
+          }).join("");
+      } catch (e) {
+        courseSelect.innerHTML = `<option value="">Couldn't reach backend</option>`;
+      }
+    }
+
+    async function loadMaterials(courseId) {
+      if (!courseId) {
+        materialsTable.style.display = "none";
+        materialsEmpty.style.display = "block";
+        materialsEmpty.textContent = "Select a registered course above to view its materials.";
+        courseMeta.textContent = "";
+        return;
+      }
+      const course = coursesById[courseId] || {};
+      courseMeta.textContent = course.faculty ? `Faculty: ${course.faculty}` : "";
+      try {
+        const res = await fetch(`${API_BASE}/materials?course_id=${encodeURIComponent(courseId)}`);
+        const data = await res.json();
+        const materials = data.materials || [];
+        if (!materials.length) {
+          materialsTable.style.display = "none";
+          materialsEmpty.style.display = "block";
+          materialsEmpty.textContent = "No materials indexed for this course yet.";
+          return;
+        }
+        materialsBody.innerHTML = materials.map(m => `
+          <tr data-course-material data-source="${m.source}">
+            <td><span class="file-link">${m.title}</span></td>
+            <td><span class="tag">PDF</span></td>
+            <td><a class="dl-link" href="${API_BASE}/materials/download/${encodeURIComponent(courseId)}/${encodeURIComponent(m.source)}" target="_blank">Download</a></td>
+          </tr>
+        `).join("");
+        materialsTable.style.display = "table";
+        materialsEmpty.style.display = "none";
+      } catch (e) {
+        materialsTable.style.display = "none";
+        materialsEmpty.style.display = "block";
+        materialsEmpty.textContent = "Couldn't reach the backend to load materials.";
+      }
+    }
+
+    courseSelect.addEventListener("change", () => {
+      const id = courseSelect.value;
+      const course = coursesById[id];
+      loadMaterials(id);
+      // Tell the (already-loaded) widget to switch context â€” no reload needed.
+      if (window.CourseAssistant) {
+        window.CourseAssistant.setCourse(id || null, course ? course.name : null);
+      }
+    });
+
+    loadCourseOptions();
+
+    // The widget starts with no course selected; this page owns course
+    // selection via the dropdown above (courseSelector: "external"), and
+    // drives the widget at runtime through window.CourseAssistant.setCourse().
+    window.COURSE_ASSISTANT_CONFIG = {
+      apiBase: API_BASE,
+      courseSelector: "external",
+      title: "Course Assistant"
+    };
+  </script>
+  <script src="widget.js"></script>
+
+</body>
+</html>
+

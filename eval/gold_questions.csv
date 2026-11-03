@@ -1,0 +1,4 @@
+id,course_id,question,relevant_sources,gold_answer
+Q1,ISWE411L,What is an artificial neural network?,M1-neural-network-fundamentals.pdf,An artificial neural network is a computational model inspired by biological neural networks.
+Q2,ISWE411L,What is a convolutional neural network?,M2-convolutional-neural-networks.pdf,"Convolutional Neural Networks are designed primarily for grid-like data such as images. Unlike fully-connected layers, convolutional layers exploit spatial structure, dramatically reducing the number of parameters compared to a dense network processing raw pixels."
+Q3,MGT2001,What is leadership?,U3-leadership-and-motivation.pdf,Leadership is the ability to influence and guide individuals towards achieving common goals.
